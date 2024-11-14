@@ -11,13 +11,14 @@ The start of a basic application for managing notes and todo lists for projects.
 - [x] Add Note / Delete Note
 - [x] Add Project
 - [ ] Delete Project
-- [ ] Rename Project
-- [ ] Edit Note
-- [ ] Edit Task
+- [x] Rename Project
+- [x] Edit Note
+- [x] Edit Task
 - [ ] Markdown Editor
-- [ ] Login
+- [x] Login
 - [ ] Settings Page
-- [ ] Dark Mode
-- [ ] Registration Page
-- [ ] User management
+- [x] Admin Page
+- [x] Dark Mode
+- [x] Registration Page
+- [x] User management
 - [ ] Mobile friendly 
