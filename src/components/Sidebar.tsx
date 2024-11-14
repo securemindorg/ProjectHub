@@ -1,6 +1,6 @@
 import React from 'react';
-import { FolderKanban, ListTodo, StickyNote, Plus, LogOut } from 'lucide-react';
-import { Project } from '../types';
+import { FolderKanban, ListTodo, StickyNote, Plus, LogOut, UserCog } from 'lucide-react';
+import { Project, User } from '../types';
 
 interface SidebarProps {
   projects: Project[];
@@ -8,6 +8,8 @@ interface SidebarProps {
   onSelectProject: (projectId: string) => void;
   onNewProject: () => void;
   onLogout: () => void;
+  user: User;
+  onAdminPanel: () => void;
 }
 
 export function Sidebar({
@@ -16,6 +18,8 @@ export function Sidebar({
   onSelectProject,
   onNewProject,
   onLogout,
+  user,
+  onAdminPanel,
 }: SidebarProps) {
   return (
     <div className="w-64 bg-gray-900 text-white h-screen flex flex-col">
@@ -53,7 +57,16 @@ export function Sidebar({
         </nav>
       </div>
 
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4 border-t border-gray-700 space-y-2">
+        {user.isAdmin && (
+          <button
+            onClick={onAdminPanel}
+            className="w-full flex items-center space-x-2 px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition-colors"
+          >
+            <UserCog className="w-4 h-4" />
+            <span>Admin Panel</span>
+          </button>
+        )}
         <button
           onClick={onLogout}
           className="w-full flex items-center space-x-2 px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition-colors"

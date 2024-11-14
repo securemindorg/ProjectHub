@@ -1,13 +1,34 @@
-import { Project, Todo, Note } from '../types';
+import { Project, Todo, Note, User } from '../types';
 
 const STORAGE_KEYS = {
+  USERS: 'users',
   PROJECTS: 'projects',
   TODOS: 'todos',
   NOTES: 'notes',
-  USER: 'user',
+  CURRENT_USER: 'currentUser',
 };
 
 export const storage = {
+  getUsers: (): User[] => {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+  },
+
+  setUsers: (users: User[]) => {
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+  },
+
+  getCurrentUser: (): User | null => {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.CURRENT_USER) || 'null');
+  },
+
+  setCurrentUser: (user: User | null) => {
+    if (user) {
+      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+    }
+  },
+
   getProjects: (): Project[] => {
     return JSON.parse(localStorage.getItem(STORAGE_KEYS.PROJECTS) || '[]');
   },
@@ -30,14 +51,6 @@ export const storage = {
 
   setNotes: (notes: Note[]) => {
     localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
-  },
-
-  getUser: () => {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.USER) || 'null');
-  },
-
-  setUser: (user: any) => {
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
   },
 
   clear: () => {

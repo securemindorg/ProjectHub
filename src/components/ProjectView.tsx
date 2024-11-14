@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Project, Todo, Note } from '../types';
-import { ListTodo, StickyNote, Plus, Trash2 } from 'lucide-react';
+import { ListTodo, StickyNote, Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 
 interface ProjectViewProps {
   project: Project;
@@ -11,6 +11,10 @@ interface ProjectViewProps {
   onAddNote: (content: string) => void;
   onDeleteTodo: (todoId: string) => void;
   onDeleteNote: (noteId: string) => void;
+  onUpdateProject: (project: Project) => void;
+  onUpdateTodo: (todo: Todo) => void;
+  onUpdateNote: (note: Note) => void;
+  canEdit: boolean;
 }
 
 export function ProjectView({
@@ -22,9 +26,17 @@ export function ProjectView({
   onAddNote,
   onDeleteTodo,
   onDeleteNote,
+  onUpdateProject,
+  onUpdateTodo,
+  onUpdateNote,
+  canEdit,
 }: ProjectViewProps) {
   const [newTodo, setNewTodo] = useState('');
   const [newNote, setNewNote] = useState('');
+  const [editingProjectName, setEditingProjectName] = useState(false);
+  const [editedProjectName, setEditedProjectName] = useState(project.name);
+  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
 
   const handleAddTodo = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,105 +54,262 @@ export function ProjectView({
     }
   };
 
+  const handleProjectNameSave = () => {
+    if (editedProjectName.trim() && editedProjectName !== project.name) {
+      onUpdateProject({
+        ...project,
+        name: editedProjectName.trim(),
+        updatedAt: new Date().toISOString(),
+      });
+    }
+    setEditingProjectName(false);
+  };
+
+  const handleTodoSave = (todo: Todo, newTitle: string) => {
+    if (newTitle.trim() && newTitle !== todo.title) {
+      onUpdateTodo({
+        ...todo,
+        title: newTitle.trim(),
+        updatedAt: new Date().toISOString(),
+      });
+    }
+    setEditingTodoId(null);
+  };
+
+  const handleNoteSave = (note: Note, newContent: string) => {
+    if (newContent.trim() && newContent !== note.content) {
+      onUpdateNote({
+        ...note,
+        content: newContent.trim(),
+        updatedAt: new Date().toISOString(),
+      });
+    }
+    setEditingNoteId(null);
+  };
+
   return (
-    <div className="flex-1 overflow-y-auto bg-gray-50">
+    <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-800">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">{project.name}</h1>
+        <div className="flex items-center space-x-4 mb-8">
+          {editingProjectName ? (
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                value={editedProjectName}
+                onChange={(e) => setEditedProjectName(e.target.value)}
+                className="text-3xl font-bold bg-transparent border-b-2 border-blue-500 focus:outline-none dark:text-white"
+                autoFocus
+              />
+              <button
+                onClick={handleProjectNameSave}
+                className="p-1 text-green-600 hover:bg-green-100 rounded"
+              >
+                <Check className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => {
+                  setEditingProjectName(false);
+                  setEditedProjectName(project.name);
+                }}
+                className="p-1 text-red-600 hover:bg-red-100 rounded"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                {project.name}
+              </h1>
+              {canEdit && (
+                <button
+                  onClick={() => setEditingProjectName(true)}
+                  className="p-1 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                >
+                  <Edit2 className="w-5 h-5" />
+                </button>
+              )}
+            </>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Todos Section */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
             <div className="flex items-center space-x-2 mb-6">
               <ListTodo className="w-5 h-5 text-blue-600" />
-              <h2 className="text-xl font-semibold">Tasks</h2>
+              <h2 className="text-xl font-semibold dark:text-white">Tasks</h2>
             </div>
 
-            <form onSubmit={handleAddTodo} className="mb-4">
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={newTodo}
-                  onChange={(e) => setNewTodo(e.target.value)}
-                  placeholder="Add a new task..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Plus className="w-5 h-5" />
-                </button>
-              </div>
-            </form>
+            {canEdit && (
+              <form onSubmit={handleAddTodo} className="mb-4">
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={newTodo}
+                    onChange={(e) => setNewTodo(e.target.value)}
+                    placeholder="Add a new task..."
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
+              </form>
+            )}
 
             <div className="space-y-2">
               {todos.map((todo) => (
                 <div
                   key={todo.id}
-                  className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg group"
+                  className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg group"
                 >
                   <input
                     type="checkbox"
                     checked={todo.completed}
                     onChange={() => onToggleTodo(todo.id)}
                     className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                    disabled={!canEdit}
                   />
-                  <span
-                    className={`flex-1 ${
-                      todo.completed ? 'line-through text-gray-500' : ''
-                    }`}
-                  >
-                    {todo.title}
-                  </span>
-                  <button
-                    onClick={() => onDeleteTodo(todo.id)}
-                    className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {editingTodoId === todo.id ? (
+                    <div className="flex-1 flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={todo.title}
+                        onChange={(e) =>
+                          onUpdateTodo({ ...todo, title: e.target.value })
+                        }
+                        className="flex-1 px-2 py-1 bg-white dark:bg-gray-700 border border-blue-500 rounded focus:outline-none dark:text-white"
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => handleTodoSave(todo, todo.title)}
+                        className="p-1 text-green-600 hover:bg-green-100 rounded"
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setEditingTodoId(null)}
+                        className="p-1 text-red-600 hover:bg-red-100 rounded"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <span
+                      className={`flex-1 dark:text-white ${
+                        todo.completed ? 'line-through text-gray-500' : ''
+                      }`}
+                    >
+                      {todo.title}
+                    </span>
+                  )}
+                  {canEdit && (
+                    <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-1">
+                      <button
+                        onClick={() => setEditingTodoId(todo.id)}
+                        className="p-1 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => onDeleteTodo(todo.id)}
+                        className="p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900 rounded transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
 
           {/* Notes Section */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
             <div className="flex items-center space-x-2 mb-6">
               <StickyNote className="w-5 h-5 text-yellow-600" />
-              <h2 className="text-xl font-semibold">Notes</h2>
+              <h2 className="text-xl font-semibold dark:text-white">Notes</h2>
             </div>
 
-            <form onSubmit={handleAddNote} className="mb-4">
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                  placeholder="Add a new note..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
-                >
-                  <Plus className="w-5 h-5" />
-                </button>
-              </div>
-            </form>
+            {canEdit && (
+              <form onSubmit={handleAddNote} className="mb-4">
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    placeholder="Add a new note..."
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
+              </form>
+            )}
 
             <div className="space-y-4">
               {notes.map((note) => (
                 <div
                   key={note.id}
-                  className="p-4 bg-yellow-50 rounded-lg group relative"
+                  className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg group relative"
                 >
-                  <p className="text-gray-800">{note.content}</p>
-                  <button
-                    onClick={() => onDeleteNote(note.id)}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {editingNoteId === note.id ? (
+                    <div className="flex flex-col space-y-2">
+                      <textarea
+                        value={note.content}
+                        onChange={(e) =>
+                          onUpdateNote({ ...note, content: e.target.value })
+                        }
+                        className="w-full px-2 py-1 bg-white dark:bg-gray-700 border border-yellow-500 rounded focus:outline-none dark:text-white"
+                        rows={3}
+                        autoFocus
+                      />
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          onClick={() => handleNoteSave(note, note.content)}
+                          className="p-1 text-green-600 hover:bg-green-100 rounded"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setEditingNoteId(null)}
+                          className="p-1 text-red-600 hover:bg-red-100 rounded"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-gray-800 dark:text-gray-200">
+                        {note.content}
+                      </p>
+                      {canEdit && (
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex items-center space-x-1">
+                          <button
+                            onClick={() => setEditingNoteId(note.id)}
+                            className="p-1 text-gray-500 hover:bg-yellow-100 dark:hover:bg-yellow-800 rounded transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => onDeleteNote(note.id)}
+                            className="p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900 rounded transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               ))}
             </div>

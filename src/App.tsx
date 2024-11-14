@@ -1,26 +1,79 @@
 import React, { useState, useEffect } from 'react';
-import { Project, Todo, Note } from './types';
+import { Project, Todo, Note, User } from './types';
 import { storage } from './utils/storage';
 import { Sidebar } from './components/Sidebar';
 import { ProjectView } from './components/ProjectView';
+import { Login } from './components/Login';
+import { AdminPanel } from './components/AdminPanel';
+import { ThemeToggle } from './components/ThemeToggle';
 
 function App() {
+  const [user, setUser] = useState<User | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [todos, setTodos] = useState<Todo[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme') === 'dark';
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return saved ?? prefersDark;
+    }
+    return false;
+  });
 
   useEffect(() => {
-    // Load initial data from localStorage
-    setProjects(storage.getProjects());
-    setTodos(storage.getTodos());
-    setNotes(storage.getNotes());
+    const root = window.document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDark]);
+
+  useEffect(() => {
+    const currentUser = storage.getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+      setProjects(storage.getProjects().filter(p => 
+        p.userIds.includes(currentUser.id) || currentUser.isAdmin
+      ));
+      setTodos(storage.getTodos());
+      setNotes(storage.getNotes());
+    }
   }, []);
 
+  const handleLogin = (loggedInUser: User) => {
+    setUser(loggedInUser);
+    const userProjects = storage.getProjects().filter(p => 
+      p.userIds.includes(loggedInUser.id) || loggedInUser.isAdmin
+    );
+    setProjects(userProjects);
+    setTodos(storage.getTodos());
+    setNotes(storage.getNotes());
+  };
+
+  const handleLogout = () => {
+    storage.setCurrentUser(null);
+    setUser(null);
+    setProjects([]);
+    setTodos([]);
+    setNotes([]);
+    setSelectedProjectId(null);
+    setShowAdminPanel(false);
+  };
+
   const handleNewProject = () => {
+    if (!user) return;
+
     const newProject: Project = {
       id: crypto.randomUUID(),
       name: `Project ${projects.length + 1}`,
+      ownerId: user.id,
+      userIds: [user.id],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -29,6 +82,15 @@ function App() {
     setProjects(updatedProjects);
     storage.setProjects(updatedProjects);
     setSelectedProjectId(newProject.id);
+    setShowAdminPanel(false);
+  };
+
+  const handleUpdateProject = (updatedProject: Project) => {
+    const updatedProjects = projects.map(p =>
+      p.id === updatedProject.id ? updatedProject : p
+    );
+    setProjects(updatedProjects);
+    storage.setProjects(updatedProjects);
   };
 
   const handleAddTodo = (title: string) => {
@@ -40,11 +102,20 @@ function App() {
       title,
       completed: false,
       priority: 'medium',
+      tags: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
     const updatedTodos = [...todos, newTodo];
+    setTodos(updatedTodos);
+    storage.setTodos(updatedTodos);
+  };
+
+  const handleUpdateTodo = (updatedTodo: Todo) => {
+    const updatedTodos = todos.map(t =>
+      t.id === updatedTodo.id ? updatedTodo : t
+    );
     setTodos(updatedTodos);
     storage.setTodos(updatedTodos);
   };
@@ -75,6 +146,14 @@ function App() {
     storage.setNotes(updatedNotes);
   };
 
+  const handleUpdateNote = (updatedNote: Note) => {
+    const updatedNotes = notes.map(n =>
+      n.id === updatedNote.id ? updatedNote : n
+    );
+    setNotes(updatedNotes);
+    storage.setNotes(updatedNotes);
+  };
+
   const handleDeleteTodo = (todoId: string) => {
     const updatedTodos = todos.filter((todo) => todo.id !== todoId);
     setTodos(updatedTodos);
@@ -87,42 +166,71 @@ function App() {
     storage.setNotes(updatedNotes);
   };
 
+  if (!user) {
+    return (
+      <div className="dark:bg-gray-900">
+        <Login onLogin={handleLogin} />
+      </div>
+    );
+  }
+
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
   const projectTodos = todos.filter((todo) => todo.projectId === selectedProjectId);
   const projectNotes = notes.filter((note) => note.projectId === selectedProjectId);
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       <Sidebar
         projects={projects}
         selectedProjectId={selectedProjectId}
-        onSelectProject={setSelectedProjectId}
+        onSelectProject={(id) => {
+          setSelectedProjectId(id);
+          setShowAdminPanel(false);
+        }}
         onNewProject={handleNewProject}
-        onLogout={() => {}}
+        onLogout={handleLogout}
+        user={user}
+        onAdminPanel={() => {
+          setShowAdminPanel(true);
+          setSelectedProjectId(null);
+        }}
       />
-      {selectedProject ? (
-        <ProjectView
-          project={selectedProject}
-          todos={projectTodos}
-          notes={projectNotes}
-          onAddTodo={handleAddTodo}
-          onToggleTodo={handleToggleTodo}
-          onAddNote={handleAddNote}
-          onDeleteTodo={handleDeleteTodo}
-          onDeleteNote={handleDeleteNote}
-        />
-      ) : (
-        <div className="flex-1 flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold text-gray-700 mb-2">
-              Welcome to ProjectHub
-            </h2>
-            <p className="text-gray-500">
-              Select a project or create a new one to get started
-            </p>
-          </div>
+      <div className="flex-1 flex flex-col">
+        <div className="p-4 flex justify-end">
+          <ThemeToggle isDark={isDark} onToggle={() => setIsDark(!isDark)} />
         </div>
-      )}
+        <div className="flex-1">
+          {showAdminPanel ? (
+            <AdminPanel currentUser={user} />
+          ) : selectedProject ? (
+            <ProjectView
+              project={selectedProject}
+              todos={projectTodos}
+              notes={projectNotes}
+              onAddTodo={handleAddTodo}
+              onToggleTodo={handleToggleTodo}
+              onAddNote={handleAddNote}
+              onDeleteTodo={handleDeleteTodo}
+              onDeleteNote={handleDeleteNote}
+              onUpdateProject={handleUpdateProject}
+              onUpdateTodo={handleUpdateTodo}
+              onUpdateNote={handleUpdateNote}
+              canEdit={user.isAdmin || selectedProject.ownerId === user.id}
+            />
+          ) : (
+            <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+              <div className="text-center">
+                <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                  Welcome to ProjectHub
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Select a project or create a new one to get started
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
