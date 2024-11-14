@@ -1,3 +1,7 @@
+# Interface
+![Screenshot from 2024-11-13 21-53-10](https://github.com/user-attachments/assets/e6786b0b-9f06-4a9f-9256-82a6df10f313)
+
+
 # ProjectHub
 The start of a basic application for managing notes and todo lists for projects. 
 
