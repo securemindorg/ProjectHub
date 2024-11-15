@@ -11,6 +11,8 @@ export interface Project {
   name: string;
   ownerId: string;
   userIds: string[];
+  parentId?: string;
+  dataDirectory?: string;
   createdAt: string;
   updatedAt: string;
 }

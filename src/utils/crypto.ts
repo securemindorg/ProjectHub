@@ -7,7 +7,7 @@ export async function hash(password: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-export async function verify(password: string, hash: string): Promise<boolean> {
+export async function verify(password: string, hashedPassword: string): Promise<boolean> {
   const passwordHash = await hash(password);
-  return passwordHash === hash;
+  return passwordHash === hashedPassword;
 }

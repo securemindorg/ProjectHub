@@ -1,5 +1,5 @@
 import React from 'react';
-import { FolderKanban, ListTodo, StickyNote, Plus, LogOut, UserCog } from 'lucide-react';
+import { FolderKanban, ListTodo, StickyNote, Plus, LogOut, UserCog, LayoutDashboard } from 'lucide-react';
 import { Project, User } from '../types';
 
 interface SidebarProps {
@@ -10,6 +10,7 @@ interface SidebarProps {
   onLogout: () => void;
   user: User;
   onAdminPanel: () => void;
+  onDashboard: () => void;
 }
 
 export function Sidebar({
@@ -20,6 +21,7 @@ export function Sidebar({
   onLogout,
   user,
   onAdminPanel,
+  onDashboard,
 }: SidebarProps) {
   return (
     <div className="w-64 bg-gray-900 text-white h-screen flex flex-col">
@@ -29,7 +31,14 @@ export function Sidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4">
+        <div className="p-4 space-y-2">
+          <button
+            onClick={onDashboard}
+            className="w-full flex items-center space-x-2 px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition-colors"
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            <span>Dashboard</span>
+          </button>
           <button
             onClick={onNewProject}
             className="w-full flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"

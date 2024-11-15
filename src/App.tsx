@@ -6,6 +6,8 @@ import { ProjectView } from './components/ProjectView';
 import { Login } from './components/Login';
 import { AdminPanel } from './components/AdminPanel';
 import { ThemeToggle } from './components/ThemeToggle';
+import { UserProfile } from './components/UserProfile';
+import { Dashboard } from './components/Dashboard';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -14,6 +16,7 @@ function App() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(true);
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme') === 'dark';
@@ -64,6 +67,7 @@ function App() {
     setNotes([]);
     setSelectedProjectId(null);
     setShowAdminPanel(false);
+    setShowDashboard(true);
   };
 
   const handleNewProject = () => {
@@ -83,6 +87,7 @@ function App() {
     storage.setProjects(updatedProjects);
     setSelectedProjectId(newProject.id);
     setShowAdminPanel(false);
+    setShowDashboard(false);
   };
 
   const handleUpdateProject = (updatedProject: Project) => {
@@ -186,6 +191,7 @@ function App() {
         onSelectProject={(id) => {
           setSelectedProjectId(id);
           setShowAdminPanel(false);
+          setShowDashboard(false);
         }}
         onNewProject={handleNewProject}
         onLogout={handleLogout}
@@ -193,15 +199,31 @@ function App() {
         onAdminPanel={() => {
           setShowAdminPanel(true);
           setSelectedProjectId(null);
+          setShowDashboard(false);
+        }}
+        onDashboard={() => {
+          setShowDashboard(true);
+          setSelectedProjectId(null);
+          setShowAdminPanel(false);
         }}
       />
       <div className="flex-1 flex flex-col">
-        <div className="p-4 flex justify-end">
+        <div className="p-4 flex justify-between items-center bg-white dark:bg-gray-900 shadow-sm">
+          <UserProfile user={user} />
           <ThemeToggle isDark={isDark} onToggle={() => setIsDark(!isDark)} />
         </div>
         <div className="flex-1">
           {showAdminPanel ? (
             <AdminPanel currentUser={user} />
+          ) : showDashboard ? (
+            <Dashboard
+              projects={projects}
+              todos={todos}
+              onSelectProject={(id) => {
+                setSelectedProjectId(id);
+                setShowDashboard(false);
+              }}
+            />
           ) : selectedProject ? (
             <ProjectView
               project={selectedProject}
