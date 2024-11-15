@@ -14,15 +14,18 @@ The start of a basic application for managing notes and todo lists for projects.
 - [x] Add Tasks / Delete Task / Mark Task As Complete
 - [x] Add Note / Delete Note
 - [x] Add Project
-- [ ] Delete Project
+- [x] Delete Project
 - [x] Rename Project
 - [x] Edit Note
 - [x] Edit Task
 - [ ] Markdown Editor
 - [x] Login
-- [ ] Settings Page
+- [x] Settings as part of the admin page
 - [x] Admin Page
 - [x] Dark Mode
 - [x] Registration Page
 - [x] User management
-- [ ] Mobile friendly 
+- [ ] Mobile friendly
+- [x] Directory setting for data storage
+- [ ] Directory browser for data storage
+- [x] project sharing with other users
