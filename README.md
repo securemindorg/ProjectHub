@@ -29,6 +29,8 @@ The start of a basic application for managing notes and todo lists for projects.
 - [x] Directory setting for data storage
 - [x] Directory browser for data storage
 - [x] project sharing with other users
+- [ ] support for project hierarchy (left menu display)
+- [ ] add creation date/time stamp to notes and tasks 
 
 # Storage Settings
 
