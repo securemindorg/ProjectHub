@@ -1,3 +1,12 @@
+# Welcome to ProjectHub! 
+
+This lightweight and intuitive app is designed to help you manage your projects, ToDo lists, and notes efficiently, all while keeping your data private and stored locally on your device.
+
+With a focus on simplicity and organization, the app allows you to create a hierarchical structure for your projects, track tasks with checkboxes, and maintain detailed notes for each project. The application includes role-based user management, a customizable light/dark mode interface, and robust tools for searching, editing, and organizing your data—all without relying on cloud storage.
+
+Whether you're managing personal tasks or team-based projects, the Project Organizer Web Application is built to provide a seamless, secure, and user-friendly experience. Get started today and bring structure to your workflow!
+
+
 # Interface
 ![Screenshot from 2024-11-13 21-53-10](https://github.com/user-attachments/assets/e6786b0b-9f06-4a9f-9256-82a6df10f313)
 
