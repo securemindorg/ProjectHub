@@ -4,7 +4,7 @@ This lightweight and intuitive app is designed to help you manage your projects,
 
 With a focus on simplicity and organization, the app allows you to create a hierarchical structure for your projects, track tasks with checkboxes, and maintain detailed notes for each project. The application includes role-based user management, a customizable light/dark mode interface, and robust tools for searching, editing, and organizing your data—all without relying on cloud storage.
 
-Whether you're managing personal tasks or team-based projects, the Project Organizer Web Application is built to provide a seamless, secure, and user-friendly experience. Get started today and bring structure to your workflow!
+Whether you're managing personal tasks or team-based projects, ProjectHub is built to provide a seamless, secure, and user-friendly experience. Get started today and bring structure to your workflow!
 
 
 # Interface
