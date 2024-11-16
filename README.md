@@ -37,6 +37,7 @@ The start of a basic application for managing notes and todo lists for projects.
 - [ ] Mobile friendly
 - [x] Directory setting for data storage
 - [x] Directory browser for data storage
+- [ ] Stop using the browsers local storage API and switch to actual local 
 - [x] project sharing with other users
 - [ ] support for project hierarchy (left menu display)
 - [ ] add creation date/time stamp to notes and tasks
