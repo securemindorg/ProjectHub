@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { User, Project } from '../types';
 import { auth } from '../utils/auth';
 import { storage } from '../utils/storage';
-import { Shield, Trash2, UserCog, Users, FolderKanban, Share2, Database } from 'lucide-react';
+import { Shield, Trash2, UserCog, Users, FolderKanban, Share2, Database, Folder } from 'lucide-react';
 import { ProjectSharing } from './ProjectSharing';
+import { DirectoryBrowser } from './DirectoryBrowser';
 
 interface AdminPanelProps {
   currentUser: User;
@@ -15,7 +16,8 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [dataDirectory, setDataDirectory] = useState('');
+  const [showDirectoryBrowser, setShowDirectoryBrowser] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,15 +64,16 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
     }
   };
 
-  const handleUpdateDataDirectory = (projectId: string) => {
+  const handleUpdateDataDirectory = (projectId: string, path: string) => {
     const updatedProjects = projects.map(project =>
       project.id === projectId
-        ? { ...project, dataDirectory, updatedAt: new Date().toISOString() }
+        ? { ...project, dataDirectory: path, updatedAt: new Date().toISOString() }
         : project
     );
     storage.setProjects(updatedProjects);
     setProjects(updatedProjects);
-    setDataDirectory('');
+    setShowDirectoryBrowser(false);
+    setSelectedProjectId(null);
   };
 
   return (
@@ -191,21 +194,15 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
                   >
                     <Share2 className="w-5 h-5" />
                   </button>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Data directory path"
-                      value={dataDirectory}
-                      onChange={(e) => setDataDirectory(e.target.value)}
-                      className="px-3 py-1 border border-gray-300 rounded-lg text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                    />
-                    <button
-                      onClick={() => handleUpdateDataDirectory(project.id)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2"
-                    >
-                      <Database className="w-4 h-4 text-gray-500" />
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedProjectId(project.id);
+                      setShowDirectoryBrowser(true);
+                    }}
+                    className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                  >
+                    <Folder className="w-5 h-5" />
+                  </button>
                   <button
                     onClick={() => handleDeleteProject(project.id)}
                     className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
@@ -231,6 +228,16 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
             storage.setProjects(updatedProjects);
             setProjects(updatedProjects);
             setSelectedProject(null);
+          }}
+        />
+      )}
+
+      {showDirectoryBrowser && selectedProjectId && (
+        <DirectoryBrowser
+          onSelect={(path) => handleUpdateDataDirectory(selectedProjectId, path)}
+          onClose={() => {
+            setShowDirectoryBrowser(false);
+            setSelectedProjectId(null);
           }}
         />
       )}

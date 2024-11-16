@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Project, Todo, Note } from '../types';
-import { ListTodo, StickyNote, Plus, Trash2, Edit2, Check, X } from 'lucide-react';
+import { ListTodo, StickyNote, Plus, Trash2, Edit2, Check, X, Eye, EyeOff } from 'lucide-react';
+import { MarkdownEditor } from './MarkdownEditor';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface ProjectViewProps {
   project: Project;
@@ -37,6 +40,7 @@ export function ProjectView({
   const [editedProjectName, setEditedProjectName] = useState(project.name);
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [previewMode, setPreviewMode] = useState<{ [key: string]: boolean }>({});
 
   const handleAddTodo = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,15 +80,11 @@ export function ProjectView({
     setEditingTodoId(null);
   };
 
-  const handleNoteSave = (note: Note, newContent: string) => {
-    if (newContent.trim() && newContent !== note.content) {
-      onUpdateNote({
-        ...note,
-        content: newContent.trim(),
-        updatedAt: new Date().toISOString(),
-      });
-    }
-    setEditingNoteId(null);
+  const toggleNotePreview = (noteId: string) => {
+    setPreviewMode(prev => ({
+      ...prev,
+      [noteId]: !prev[noteId]
+    }));
   };
 
   return (
@@ -199,13 +199,16 @@ export function ProjectView({
                       </button>
                     </div>
                   ) : (
-                    <span
-                      className={`flex-1 dark:text-white ${
-                        todo.completed ? 'line-through text-gray-500' : ''
-                      }`}
-                    >
-                      {todo.title}
-                    </span>
+                    <div className="flex-1">
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        className={`prose dark:prose-invert max-w-none ${
+                          todo.completed ? 'line-through text-gray-500' : ''
+                        }`}
+                      >
+                        {todo.title}
+                      </ReactMarkdown>
+                    </div>
                   )}
                   {canEdit && (
                     <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-1">
@@ -237,19 +240,16 @@ export function ProjectView({
 
             {canEdit && (
               <form onSubmit={handleAddNote} className="mb-4">
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={newNote}
-                    onChange={(e) => setNewNote(e.target.value)}
-                    placeholder="Add a new note..."
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                  />
+                <MarkdownEditor
+                  content={newNote}
+                  onChange={setNewNote}
+                />
+                <div className="mt-2 flex justify-end">
                   <button
                     type="submit"
                     className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
                   >
-                    <Plus className="w-5 h-5" />
+                    Add Note
                   </button>
                 </div>
               </form>
@@ -262,38 +262,39 @@ export function ProjectView({
                   className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg group relative"
                 >
                   {editingNoteId === note.id ? (
-                    <div className="flex flex-col space-y-2">
-                      <textarea
-                        value={note.content}
-                        onChange={(e) =>
-                          onUpdateNote({ ...note, content: e.target.value })
-                        }
-                        className="w-full px-2 py-1 bg-white dark:bg-gray-700 border border-yellow-500 rounded focus:outline-none dark:text-white"
-                        rows={3}
-                        autoFocus
+                    <div className="space-y-2">
+                      <MarkdownEditor
+                        content={note.content}
+                        onChange={(content) => onUpdateNote({ ...note, content })}
                       />
                       <div className="flex justify-end space-x-2">
                         <button
-                          onClick={() => handleNoteSave(note, note.content)}
-                          className="p-1 text-green-600 hover:bg-green-100 rounded"
-                        >
-                          <Check className="w-4 h-4" />
-                        </button>
-                        <button
                           onClick={() => setEditingNoteId(null)}
-                          className="p-1 text-red-600 hover:bg-red-100 rounded"
+                          className="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded"
                         >
-                          <X className="w-4 h-4" />
+                          Save
                         </button>
                       </div>
                     </div>
                   ) : (
                     <>
-                      <p className="text-gray-800 dark:text-gray-200">
-                        {note.content}
-                      </p>
+                      <div className="prose dark:prose-invert max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {note.content}
+                        </ReactMarkdown>
+                      </div>
                       {canEdit && (
                         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex items-center space-x-1">
+                          <button
+                            onClick={() => toggleNotePreview(note.id)}
+                            className="p-1 text-gray-500 hover:bg-yellow-100 dark:hover:bg-yellow-800 rounded transition-colors"
+                          >
+                            {previewMode[note.id] ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
                           <button
                             onClick={() => setEditingNoteId(note.id)}
                             className="p-1 text-gray-500 hover:bg-yellow-100 dark:hover:bg-yellow-800 rounded transition-colors"
