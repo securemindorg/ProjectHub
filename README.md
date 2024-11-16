@@ -18,7 +18,7 @@ The start of a basic application for managing notes and todo lists for projects.
 - [x] Rename Project
 - [x] Edit Note
 - [x] Edit Task
-- [ ] Markdown Editor
+- [x] Markdown Editor
 - [x] Login
 - [x] Settings as part of the admin page
 - [x] Admin Page
@@ -27,5 +27,22 @@ The start of a basic application for managing notes and todo lists for projects.
 - [x] User management
 - [ ] Mobile friendly
 - [x] Directory setting for data storage
-- [ ] Directory browser for data storage
+- [x] Directory browser for data storage
 - [x] project sharing with other users
+
+# Storage Settings
+
+The storage directory is:
+
+- Optional - Projects can exist without a storage directory
+- Configurable per project through the Admin Panel
+- Initially empty until set by an admin user
+
+To set a storage directory for a project:
+
+1. Log in as an admin user
+2. Go to the Admin Panel
+3. Find the project you want to configure
+4. Click the folder icon next to the project
+5. Use the directory browser to select a path
+6. Click "Select This Directory" to save
