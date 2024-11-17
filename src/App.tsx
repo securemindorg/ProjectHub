@@ -47,6 +47,17 @@ function App() {
       setTodos(storage.getTodos());
       setNotes(storage.getNotes());
     }
+
+    // Listen for project updates from drag and drop
+    const handleProjectsUpdate = (event: CustomEvent<Project[]>) => {
+      setProjects(event.detail);
+    };
+
+    window.addEventListener('projectsUpdated', handleProjectsUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('projectsUpdated', handleProjectsUpdate as EventListener);
+    };
   }, []);
 
   const handleLogin = (loggedInUser: User) => {
