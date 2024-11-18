@@ -40,8 +40,8 @@ The start of a basic application for managing notes and todo lists for projects.
 - [ ] Stop using the browsers local storage API and switch to actual local 
 - [x] project sharing with other users
 - [ ] support for project hierarchy (left menu display)
-- [ ] add creation date/time stamp to notes and tasks
-- [ ] dashboard sort tasks by completed and data
+- [x] add creation date/time stamp to notes and tasks
+- [x] dashboard sort tasks by completed and data
 
 # Storage Settings
 
