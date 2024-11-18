@@ -10,6 +10,10 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
+  pointerWithin,
+  getFirstCollision,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -41,6 +45,10 @@ export function Sidebar({
   onDashboard,
 }: SidebarProps) {
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const [offsetLeft, setOffsetLeft] = useState(0);
+  
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -52,8 +60,59 @@ export function Sidebar({
     })
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveId(active.id as string);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    
+    if (!over) {
+      setOverId(null);
+      return;
+    }
+
+    setOverId(over.id as string);
+
+    const activeProject = projects.find(p => p.id === active.id);
+    const overProject = projects.find(p => p.id === over.id);
+    
+    if (!activeProject || !overProject || activeProject.id === overProject.id) {
+      return;
+    }
+
+    // Calculate if we're in nesting range
+    const overElement = document.querySelector(`[data-project-id="${over.id}"]`);
+    if (!overElement) return;
+
+    const { left } = event.over?.rect ?? {};
+    const cursorLeft = event.activatorEvent?.clientX ?? 0;
+    
+    if (left) {
+      const threshold = 20; // pixels from left edge to trigger nesting
+      const distance = cursorLeft - left;
+      
+      // Update nesting indicator
+      const indicator = overElement.querySelector('[data-nesting-indicator]') as HTMLElement;
+      if (indicator) {
+        if (distance > threshold) {
+          indicator.style.opacity = '1';
+          setOffsetLeft(20); // Indent to show nesting
+        } else {
+          indicator.style.opacity = '0';
+          setOffsetLeft(0);
+        }
+      }
+    }
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    
+    setActiveId(null);
+    setOverId(null);
+    setOffsetLeft(0);
     
     if (!over || active.id === over.id) return;
 
@@ -62,20 +121,10 @@ export function Sidebar({
     
     if (!activeProject || !overProject) return;
 
-    // Get the current order of projects at the same level
-    const currentLevelProjects = projects.filter(p => p.parentId === activeProject.parentId);
-    const activeIndex = currentLevelProjects.findIndex(p => p.id === active.id);
-    const overIndex = currentLevelProjects.findIndex(p => p.id === over.id);
-
-    // Calculate drop target position relative to the over item
-    const overRect = (over.data.current?.rect as DOMRect) || null;
-    const overCenter = overRect ? overRect.top + overRect.height / 2 : 0;
-    const mouseY = event.activatorEvent?.clientY || 0;
-
     let updatedProjects = [...projects];
 
-    // If dropping near the center of the target, make it a subproject
-    if (Math.abs(mouseY - overCenter) < 10) {
+    // If offsetLeft is set, we're nesting
+    if (offsetLeft > 0) {
       updatedProjects = projects.map(project => {
         if (project.id === activeProject.id) {
           return {
@@ -91,9 +140,12 @@ export function Sidebar({
       setExpandedProjects(prev => new Set([...prev, overProject.id]));
     } else {
       // Otherwise, reorder at the same level
-      const reorderedProjects = arrayMove(currentLevelProjects, activeIndex, overIndex);
+      const currentLevelProjects = projects.filter(p => p.parentId === activeProject.parentId);
+      const oldIndex = currentLevelProjects.findIndex(p => p.id === active.id);
+      const newIndex = currentLevelProjects.findIndex(p => p.id === over.id);
       
-      // Update the order in the main projects array
+      const reorderedProjects = arrayMove(currentLevelProjects, oldIndex, newIndex);
+      
       updatedProjects = projects.map(project => {
         if (project.parentId === activeProject.parentId) {
           const reorderedProject = reorderedProjects.find(p => p.id === project.id);
@@ -150,7 +202,9 @@ export function Sidebar({
 
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={pointerWithin}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
           modifiers={[restrictToVerticalAxis]}
         >

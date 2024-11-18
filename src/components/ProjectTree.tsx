@@ -35,7 +35,7 @@ export function ProjectTree({
     data: {
       type: 'project',
       project,
-      rect: null as DOMRect | null,
+      level,
     },
   });
 
@@ -49,7 +49,7 @@ export function ProjectTree({
   const hasSubprojects = subprojects.length > 0;
 
   return (
-    <div ref={setNodeRef} style={style}>
+    <div ref={setNodeRef} style={style} className="relative" data-project-id={project.id}>
       <div
         className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
           selectedProjectId === project.id
@@ -89,6 +89,12 @@ export function ProjectTree({
         </button>
       </div>
 
+      {/* Nesting indicator */}
+      <div 
+        className="absolute inset-0 border-2 border-blue-500 rounded-lg opacity-0 pointer-events-none transition-opacity duration-200"
+        data-nesting-indicator
+      />
+
       {isExpanded && hasSubprojects && (
         <div className="ml-4">
           {subprojects.map((subproject) => (
@@ -99,7 +105,7 @@ export function ProjectTree({
               level={level + 1}
               selectedProjectId={selectedProjectId}
               onSelectProject={onSelectProject}
-              isExpanded={isExpanded}
+              isExpanded={expandedProjects.has(subproject.id)}
               onToggleExpand={onToggleExpand}
             />
           ))}
