@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Project, Todo, Note } from '../types';
-import { ListTodo, StickyNote, Plus, Trash2, Edit2, Check, X, Eye, EyeOff, Clock, Circle, CheckCircle2 } from 'lucide-react';
+import { ListTodo, StickyNote, Plus, Trash2, Edit2, Check, X, Eye, EyeOff } from 'lucide-react';
 import { MarkdownEditor } from './MarkdownEditor';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -36,26 +36,11 @@ export function ProjectView({
 }: ProjectViewProps) {
   const [newTodo, setNewTodo] = useState('');
   const [newNote, setNewNote] = useState('');
+  const [editingProjectName, setEditingProjectName] = useState(false);
+  const [editedProjectName, setEditedProjectName] = useState(project.name);
+  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [editingNoteContent, setEditingNoteContent] = useState('');
-  const [showPreview, setShowPreview] = useState(false);
-
-  const formatDate = (date: string) => {
-    const d = new Date(date);
-    const now = new Date();
-    const diff = now.getTime() - d.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    if (days === 0) {
-      return `Today at ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    } else if (days === 1) {
-      return 'Yesterday';
-    } else if (days < 7) {
-      return d.toLocaleDateString([], { weekday: 'long' });
-    } else {
-      return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    }
-  };
+  const [previewMode, setPreviewMode] = useState<{ [key: string]: boolean }>({});
 
   const handleAddTodo = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,55 +58,106 @@ export function ProjectView({
     }
   };
 
-  const handleEditNote = (note: Note) => {
-    setEditingNoteId(note.id);
-    setEditingNoteContent(note.content);
-  };
-
-  const handleSaveNote = (noteId: string) => {
-    const note = notes.find(n => n.id === noteId);
-    if (note) {
-      onUpdateNote({
-        ...note,
-        content: editingNoteContent,
+  const handleProjectNameSave = () => {
+    if (editedProjectName.trim() && editedProjectName !== project.name) {
+      onUpdateProject({
+        ...project,
+        name: editedProjectName.trim(),
         updatedAt: new Date().toISOString(),
       });
     }
-    setEditingNoteId(null);
-    setEditingNoteContent('');
+    setEditingProjectName(false);
   };
 
-  const handleCancelEdit = () => {
-    setEditingNoteId(null);
-    setEditingNoteContent('');
+  const handleTodoSave = (todo: Todo, newTitle: string) => {
+    if (newTitle.trim() && newTitle !== todo.title) {
+      onUpdateTodo({
+        ...todo,
+        title: newTitle.trim(),
+        updatedAt: new Date().toISOString(),
+      });
+    }
+    setEditingTodoId(null);
+  };
+
+  const toggleNotePreview = (noteId: string) => {
+    setPreviewMode(prev => ({
+      ...prev,
+      [noteId]: !prev[noteId]
+    }));
   };
 
   return (
     <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-800">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{project.name}</h1>
+        <div className="flex items-center space-x-4 mb-8">
+          {editingProjectName ? (
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                value={editedProjectName}
+                onChange={(e) => setEditedProjectName(e.target.value)}
+                className="text-3xl font-bold bg-transparent border-b-2 border-blue-500 focus:outline-none dark:text-white"
+                autoFocus
+              />
+              <button
+                onClick={handleProjectNameSave}
+                className="p-1 text-green-600 hover:bg-green-100 rounded"
+              >
+                <Check className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => {
+                  setEditingProjectName(false);
+                  setEditedProjectName(project.name);
+                }}
+                className="p-1 text-red-600 hover:bg-red-100 rounded"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                {project.name}
+              </h1>
+              {canEdit && (
+                <button
+                  onClick={() => setEditingProjectName(true)}
+                  className="p-1 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                >
+                  <Edit2 className="w-5 h-5" />
+                </button>
+              )}
+            </>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Todos Section */}
           <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-                <ListTodo className="w-5 h-5 mr-2" />
-                Tasks
-              </h2>
+            <div className="flex items-center space-x-2 mb-6">
+              <ListTodo className="w-5 h-5 text-blue-600" />
+              <h2 className="text-xl font-semibold dark:text-white">Tasks</h2>
             </div>
 
             {canEdit && (
               <form onSubmit={handleAddTodo} className="mb-4">
-                <input
-                  type="text"
-                  value={newTodo}
-                  onChange={(e) => setNewTodo(e.target.value)}
-                  placeholder="Add a new task..."
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-                />
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={newTodo}
+                    onChange={(e) => setNewTodo(e.target.value)}
+                    placeholder="Add a new task..."
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
               </form>
             )}
 
@@ -131,20 +167,39 @@ export function ProjectView({
                   key={todo.id}
                   className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg group"
                 >
-                  <button
-                    onClick={() => onToggleTodo(todo.id)}
-                    className={`flex-shrink-0 ${!canEdit && 'cursor-not-allowed'}`}
+                  <input
+                    type="checkbox"
+                    checked={todo.completed}
+                    onChange={() => onToggleTodo(todo.id)}
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                     disabled={!canEdit}
-                  >
-                    {todo.completed ? (
-                      <CheckCircle2 className="w-5 h-5 text-green-500" />
-                    ) : (
-                      <Circle className="w-5 h-5 text-gray-400" />
-                    )}
-                  </button>
-                  
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
+                  />
+                  {editingTodoId === todo.id ? (
+                    <div className="flex-1 flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={todo.title}
+                        onChange={(e) =>
+                          onUpdateTodo({ ...todo, title: e.target.value })
+                        }
+                        className="flex-1 px-2 py-1 bg-white dark:bg-gray-700 border border-blue-500 rounded focus:outline-none dark:text-white"
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => handleTodoSave(todo, todo.title)}
+                        className="p-1 text-green-600 hover:bg-green-100 rounded"
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setEditingTodoId(null)}
+                        className="p-1 text-red-600 hover:bg-red-100 rounded"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex-1">
                       <ReactMarkdown 
                         remarkPlugins={[remarkGfm]}
                         className={`prose dark:prose-invert max-w-none ${
@@ -153,20 +208,23 @@ export function ProjectView({
                       >
                         {todo.title}
                       </ReactMarkdown>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center ml-2">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {formatDate(todo.updatedAt)}
-                      </span>
                     </div>
-                  </div>
-
+                  )}
                   {canEdit && (
-                    <button
-                      onClick={() => onDeleteTodo(todo.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-red-600 hover:bg-red-100 rounded transition-all"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="opacity-0 group-hover:opacity-100 flex items-center space-x-1">
+                      <button
+                        onClick={() => setEditingTodoId(todo.id)}
+                        className="p-1 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => onDeleteTodo(todo.id)}
+                        className="p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900 rounded transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}
@@ -175,21 +233,9 @@ export function ProjectView({
 
           {/* Notes Section */}
           <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-                <StickyNote className="w-5 h-5 mr-2" />
-                Notes
-              </h2>
-              <button
-                onClick={() => setShowPreview(!showPreview)}
-                className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              >
-                {showPreview ? (
-                  <Edit2 className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
+            <div className="flex items-center space-x-2 mb-6">
+              <StickyNote className="w-5 h-5 text-yellow-600" />
+              <h2 className="text-xl font-semibold dark:text-white">Notes</h2>
             </div>
 
             {canEdit && (
@@ -197,14 +243,15 @@ export function ProjectView({
                 <MarkdownEditor
                   content={newNote}
                   onChange={setNewNote}
-                  preview={showPreview}
                 />
-                <button
-                  type="submit"
-                  className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Add Note
-                </button>
+                <div className="mt-2 flex justify-end">
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+                  >
+                    Add Note
+                  </button>
+                </div>
               </form>
             )}
 
@@ -217,22 +264,15 @@ export function ProjectView({
                   {editingNoteId === note.id ? (
                     <div className="space-y-2">
                       <MarkdownEditor
-                        content={editingNoteContent}
-                        onChange={setEditingNoteContent}
-                        preview={showPreview}
+                        content={note.content}
+                        onChange={(content) => onUpdateNote({ ...note, content })}
                       />
                       <div className="flex justify-end space-x-2">
                         <button
-                          onClick={handleCancelEdit}
-                          className="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          onClick={() => setEditingNoteId(null)}
+                          className="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded"
                         >
-                          <X className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleSaveNote(note.id)}
-                          className="px-3 py-1 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
-                        >
-                          <Check className="w-4 h-4" />
+                          Save
                         </button>
                       </div>
                     </div>
@@ -243,21 +283,27 @@ export function ProjectView({
                           {note.content}
                         </ReactMarkdown>
                       </div>
-                      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {formatDate(note.updatedAt)}
-                      </div>
                       {canEdit && (
-                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex space-x-1">
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex items-center space-x-1">
                           <button
-                            onClick={() => handleEditNote(note)}
-                            className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                            onClick={() => toggleNotePreview(note.id)}
+                            className="p-1 text-gray-500 hover:bg-yellow-100 dark:hover:bg-yellow-800 rounded transition-colors"
+                          >
+                            {previewMode[note.id] ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => setEditingNoteId(note.id)}
+                            className="p-1 text-gray-500 hover:bg-yellow-100 dark:hover:bg-yellow-800 rounded transition-colors"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => onDeleteNote(note.id)}
-                            className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
+                            className="p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900 rounded transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
