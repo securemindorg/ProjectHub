@@ -1,52 +1,47 @@
 import { useState, useEffect } from 'react';
-import { User } from '../types';
-import { apiClient } from '../utils/api';
+import { storage } from '../utils/storage';
 
-export function useAuth() {
-  const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [initialized, setInitialized] = useState(() => {
-    return localStorage.getItem('initialized') === 'true';
-  });
+export const useAuth = () => {
+  const [user, setUser] = useState(null);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('user');
+    // Initialize the authentication state
+    const currentUser = storage.getCurrentUser();
+    console.log('Initializing Auth - Current User:', currentUser);
+    if (currentUser) {
+      setUser(currentUser);
     }
-  }, [user]);
-
-  const login = async (username: string, password: string) => {
-    const user = await apiClient.login(username, password);
-    setUser(user);
-    return user;
-  };
-
-  const register = async (username: string, password: string) => {
-    const user = await apiClient.register(username, password);
-    setUser(user);
-    return user;
-  };
+    setInitialized(true); // Mark initialization complete
+  }, []);
 
   const initialize = async (dataPath: string) => {
-    await apiClient.initialize(dataPath);
-    setInitialized(true);
-    localStorage.setItem('initialized', 'true');
+    storage.setDataPath(dataPath);
   };
 
-  const logout = () => {
-    setUser(null);
+    const login = async (username: string, password: string) => {
+    console.log('Looking for user during login:', username); // Debug log
+    const storedUser = storage.getUser(username);
+    console.log('Found user:', storedUser); // Debug log
+    if (storedUser && storedUser.password === password) {
+        storage.setCurrentUser(storedUser);
+        setUser(storedUser);
+        return storedUser;
+    }
+    throw new Error('Invalid username or password');
+    };
+
+  const register = async ({ username, password, isAdmin }: { username: string; password: string; isAdmin: boolean }) => {
+    const existingUser = storage.getUser(username);
+    if (existingUser) {
+      throw new Error('User already exists');
+    }
+    const newUser = { username, password, isAdmin };
+    storage.addUser(newUser);
+    storage.setCurrentUser(newUser); // Persist the user in storage
+    setUser(newUser);
+    return newUser;
   };
 
-  return {
-    user,
-    initialized,
-    login,
-    register,
-    logout,
-    initialize
-  };
-}
+  return { user, initialized, initialize, login, register };
+};

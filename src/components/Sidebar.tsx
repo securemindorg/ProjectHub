@@ -8,7 +8,7 @@ interface SidebarProps {
   onSelectProject: (projectId: string) => void;
   onNewProject: () => void;
   onLogout: () => void;
-  user: User;
+  user: User | null;
   onAdminPanel: () => void;
   onDashboard: () => void;
 }
@@ -23,6 +23,18 @@ export function Sidebar({
   onAdminPanel,
   onDashboard,
 }: SidebarProps) {
+  // Debugging logs
+  console.log("Sidebar - User Object:", user);
+  console.log("Sidebar - User Admin Status:", user?.isAdmin);
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-gray-500 dark:text-gray-400">No user information available</p>
+      </div>
+    );
+  }
+
   return (
     <div className="w-64 bg-gray-900 text-white h-screen flex flex-col">
       <div className="p-4 flex items-center space-x-2 border-b border-gray-700">

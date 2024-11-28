@@ -1,33 +1,27 @@
 import React, { useState } from 'react';
-import { LogIn, UserPlus } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { User } from '../types';
+import { useNavigate } from 'react-router-dom';
 
-interface LoginProps {
-  onLogin: (user: User) => void;
-}
-
-export function Login({ onLogin }: LoginProps) {
-  const [isRegistering, setIsRegistering] = useState(false);
+export const Login = () => {
+  const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login, register } = useAuth();
+  const navigate = useNavigate(); // Add useNavigate hook
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError(''); // Clear any previous error
 
     try {
-      if (isRegistering) {
-        const user = await register(username, password);
-        onLogin(user);
-      } else {
-        const user = await login(username, password);
-        onLogin(user);
-      }
+      await login(username, password);
+      navigate('/dashboard'); // Navigate to the dashboard after login
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      if (err?.status === 401) {
+        setError('Invalid username or password');
+      } else {
+        setError('An unexpected error occurred');
+      }
     }
   };
 
@@ -35,7 +29,7 @@ export function Login({ onLogin }: LoginProps) {
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
       <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
         <h2 className="text-2xl font-bold text-center mb-8 text-gray-900 dark:text-white">
-          {isRegistering ? 'Create Account' : 'Welcome Back'}
+          Login to ProjectHub
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -75,31 +69,10 @@ export function Login({ onLogin }: LoginProps) {
             type="submit"
             className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            {isRegistering ? (
-              <>
-                <UserPlus className="w-5 h-5" />
-                <span>Create Account</span>
-              </>
-            ) : (
-              <>
-                <LogIn className="w-5 h-5" />
-                <span>Sign In</span>
-              </>
-            )}
+            <span>Login</span>
           </button>
         </form>
-
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => setIsRegistering(!isRegistering)}
-            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500"
-          >
-            {isRegistering
-              ? 'Already have an account? Sign in'
-              : 'Need an account? Create one'}
-          </button>
-        </div>
       </div>
     </div>
   );
-}
+};

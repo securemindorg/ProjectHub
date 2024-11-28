@@ -1,6 +1,8 @@
 import React from 'react';
 import { Project, Todo } from '../types';
 import { Calendar, CheckCircle2, Circle } from 'lucide-react';
+import { Sidebar } from './Sidebar';
+
 
 interface DashboardProps {
   projects: Project[];

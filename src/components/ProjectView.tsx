@@ -200,7 +200,7 @@ export function ProjectView({
                     </div>
                   ) : (
                     <div className="flex-1">
-                      <ReactMarkdown 
+                      <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         className={`prose dark:prose-invert max-w-none ${
                           todo.completed ? 'line-through text-gray-500' : ''
