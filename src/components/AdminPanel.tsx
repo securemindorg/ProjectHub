@@ -37,7 +37,7 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
       return;
     }
 
-    const updatedUsers = users.map(user =>
+    const updatedUsers = users.map((user) =>
       user.id === userId ? { ...user, isAdmin: !user.isAdmin } : user
     );
     storage.setUsers(updatedUsers);
@@ -52,20 +52,20 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
 
     if (confirm("Are you sure you want to delete this user?")) {
       auth.deleteUser(userId);
-      setUsers(users.filter(user => user.id !== userId));
+      setUsers(users.filter((user) => user.id !== userId));
     }
   };
 
   const handleDeleteProject = (projectId: string) => {
     if (confirm("Are you sure you want to delete this project and all its contents?")) {
-      const updatedProjects = projects.filter(p => p.id !== projectId);
+      const updatedProjects = projects.filter((p) => p.id !== projectId);
       storage.setProjects(updatedProjects);
       setProjects(updatedProjects);
     }
   };
 
   const handleUpdateDataDirectory = (projectId: string, path: string) => {
-    const updatedProjects = projects.map(project =>
+    const updatedProjects = projects.map((project) =>
       project.id === projectId
         ? { ...project, dataDirectory: path, updatedAt: new Date().toISOString() }
         : project
@@ -113,21 +113,16 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
             </form>
 
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {users.map(user => (
-                <div
-                  key={user.id}
-                  className="py-4 flex items-center justify-between"
-                >
+              {users.map((user) => (
+                <div key={user.id || user.username} className="py-4 flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <span className="text-blue-600 font-semibold">
-                        {user.username[0].toUpperCase()}
-                      </span>
+                      <span className="text-blue-600 font-semibold">{user.username[0].toUpperCase()}</span>
                     </div>
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white">{user.username}</p>
                       <p className="text-sm text-gray-500">
-                        Created {new Date(user.createdAt).toLocaleDateString()}
+                        Created {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                       </p>
                     </div>
                     {user.isAdmin && (
@@ -142,9 +137,7 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
                       <button
                         onClick={() => handleToggleAdmin(user.id)}
                         className={`p-2 rounded-lg transition-colors ${
-                          user.isAdmin
-                            ? 'text-blue-600 hover:bg-blue-100'
-                            : 'text-gray-400 hover:bg-gray-100'
+                          user.isAdmin ? 'text-blue-600 hover:bg-blue-100' : 'text-gray-400 hover:bg-gray-100'
                         }`}
                       >
                         <Shield className="w-5 h-5" />
@@ -160,6 +153,7 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
                 </div>
               ))}
             </div>
+
           </div>
         </div>
 
@@ -173,17 +167,15 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
           </div>
 
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
-            {projects.map(project => (
+            {projects.map((project) => (
               <div key={project.id} className="p-6 flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white">{project.name}</h3>
                   <p className="text-sm text-gray-500">
-                    Owner: {users.find(u => u.id === project.ownerId)?.username}
+                    Owner: {users.find((u) => u.id === project.ownerId)?.username}
                   </p>
                   {project.dataDirectory && (
-                    <p className="text-sm text-gray-500">
-                      Storage: {project.dataDirectory}
-                    </p>
+                    <p className="text-sm text-gray-500">Storage: {project.dataDirectory}</p>
                   )}
                 </div>
 
@@ -222,7 +214,7 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
           users={users}
           onClose={() => setSelectedProject(null)}
           onUpdate={(updatedProject) => {
-            const updatedProjects = projects.map(p =>
+            const updatedProjects = projects.map((p) =>
               p.id === updatedProject.id ? updatedProject : p
             );
             storage.setProjects(updatedProjects);

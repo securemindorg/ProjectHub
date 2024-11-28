@@ -1,61 +1,144 @@
 # Welcome to ProjectHub! 
 
-This lightweight and intuitive app is designed to help you manage your projects, ToDo lists, and notes efficiently, all while keeping your data private and stored locally on your device.
+**ProjectHub** is a lightweight and intuitive project management app designed to help you organize your tasks, notes, and projects—all while keeping your data private and stored locally on your device.
 
-With a focus on simplicity and organization, the app allows you to create a hierarchical structure for your projects, track tasks with checkboxes, and maintain detailed notes for each project. The application includes role-based user management, a customizable light/dark mode interface, and robust tools for searching, editing, and organizing your data—all without relying on cloud storage.
+With **ProjectHub**, you can:
+- Manage hierarchical project structures.
+- Track tasks using To-Do lists.
+- Maintain rich, Markdown-enabled notes.
+- Handle role-based user management with an easy-to-use admin panel.
+- Switch seamlessly between light and dark modes.
+- Customize local data storage paths for each project without relying on cloud storage.
 
-Whether you're managing personal tasks or team-based projects, ProjectHub is built to provide a seamless, secure, and user-friendly experience. Get started today and bring structure to your workflow!
+Whether you're managing personal tasks or collaborating with a team, ProjectHub provides a seamless, secure, and user-friendly experience. Get started today to structure your workflow like never before!
+
+![image](https://github.com/user-attachments/assets/5ff45ff7-c3eb-4cdc-8ba6-c3ab247d2252)
 
 
-# Interface
-![Screenshot from 2024-11-13 21-53-10](https://github.com/user-attachments/assets/e6786b0b-9f06-4a9f-9256-82a6df10f313)
+---
 
+## Key Features
 
-# ProjectHub
-The start of a basic application for managing notes and todo lists for projects. 
+- **Task Management**: Add, edit, delete, and mark tasks as complete.
+- **Note-Taking**: Create, edit, and organize notes with Markdown support.
+- **Projects**: Create, rename, delete, and configure storage directories for projects.
+- **User Management**: Register, manage roles (Admin/User), and delete users from the admin panel.
+- **Customizable Storage**: Configure a data storage directory for each project.
+- **Dark Mode**: Switch between light and dark themes.
+- **Admin Panel**: Manage users, projects, and storage paths with ease.
+- **Local Storage**: Keep all your data secure and private, stored locally on your device.
 
-# Install
-1.) npm install
-2.) npm run dev
+---
 
-# Features
-- [x] MVP
-- [x] Add Tasks / Delete Task / Mark Task As Complete
-- [x] Add Note / Delete Note
-- [x] Add Project
-- [x] Delete Project
-- [x] Rename Project
-- [x] Edit Note
-- [x] Edit Task
-- [x] Markdown Editor
-- [x] Login
-- [x] Settings as part of the admin page
-- [x] Admin Page
-- [x] Dark Mode
-- [x] Registration Page
-- [x] User management
-- [ ] Mobile friendly
-- [x] Directory setting for data storage
-- [x] Directory browser for data storage
-- [ ] Stop using the browsers local storage API and switch to actual local 
-- [x] project sharing with other users
-- [ ] support for project hierarchy (left menu display)
-- [ ] add creation date/time stamp to notes and tasks
-- [ ] dashboard sort tasks by completed and data
+## Installation
 
-# Storage Settings
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-repo/projecthub.git
+   cd projecthub```
+2. Install dependencies:
 
-The storage directory is:
+``` npm install ```
 
-- Optional - Projects can exist without a storage directory
-- Configurable per project through the Admin Panel
-- Initially empty until set by an admin user
+3. Start the development server:
 
-To set a storage directory for a project:
+```npm run dev```
 
-1. Log in as an admin user
-2. Go to the Admin Panel
-3. Find the project you want to configure
-4. Click the folder icon next to the project
-5. Use the directory browser to select a path
-6. Click "Select This Directory" to save
+4. Open the app in your browser at http://localhost:5173.
+
+## Getting Started
+
+### Initial Setup
+
+1. On the first launch, you'll be prompted to set up the data storage directory and register an **Admin User**.
+   - Enter the desired data storage path.
+   - Provide a username and password for the admin account.
+
+2. Login with the newly created admin credentials.
+
+3. Start managing your projects, tasks, and notes!
+
+---
+
+## Usage Guide
+
+### Dashboard
+- View all projects and tasks at a glance.
+- Use the sidebar to switch between projects or access the admin panel.
+
+### Admin Panel
+- **Add New Users**:
+  1. Enter a username and password in the provided fields.
+  2. Click **Add User**.
+- **Toggle Admin Roles**:
+  - Click the shield icon next to a user's name to toggle their admin status.
+- **Delete Users**:
+  - Click the trash icon next to a user's name. A confirmation prompt will appear.
+- **Manage Project Storage Directories**:
+  1. Click the folder icon next to the project name.
+  2. Use the directory browser to select or update the project's storage path.
+
+### Managing Projects
+- **Add New Project**: Use the "New Project" button in the sidebar to create a project.
+- **Rename Project**: Click on a project's name in the dashboard or project view to rename it.
+- **Delete Project**: Use the trash icon in the admin panel to delete a project. Confirm the action when prompted.
+
+### Task Management
+- Add tasks to any project using the input field in the project view.
+- Mark tasks as complete by checking the associated checkbox.
+- Edit or delete tasks using the edit or trash icons next to the task name.
+
+### Note-Taking
+- Add notes to projects using the Markdown editor in the project view.
+- Edit notes directly by clicking into the note's text area.
+- Delete notes using the trash icon associated with each note.
+
+---
+
+## Advanced Features
+
+### Storage Settings
+1. Projects can optionally have a designated storage directory for local data.
+2. To configure storage paths for a project:
+   - Navigate to the admin panel.
+   - Click the folder icon next to the desired project.
+   - Use the directory browser to select or update the directory.
+   - Save the changes to finalize the configuration.
+
+3. Storage paths allow data like notes and tasks to persist locally for each project.
+
+### Role-Based Access
+- **Admin Users**:
+  - Have full access to manage users, projects, and storage settings.
+- **Regular Users**:
+  - Limited to managing only their assigned projects.
+
+---
+
+## Current Development Roadmap
+
+### Completed
+- ✅ Task and note management
+- ✅ Project creation, renaming, and deletion
+- ✅ Markdown editor
+- ✅ Admin panel with user and project management
+- ✅ Dark mode
+- ✅ Project-specific storage configuration
+- ✅ User authentication and role-based access
+
+### Upcoming Features
+- 📱 Mobile-friendly interface
+- ⛓ Hierarchical project organization
+- 🕒 Timestamps for tasks and notes
+- 📊 Dashboard improvements for sorting and filtering tasks
+
+Contributing
+We welcome contributions! Here's how you can get involved:
+
+1. Fork the repository.
+2. Create a new branch for your feature or bugfix:
+```git checkout -b feature-name```
+3. Commit your changes and push to your fork:
+```git commit -m "Add new feature"```
+```git push origin feature-name```
+4. Create a pull request, and we'll review your changes!

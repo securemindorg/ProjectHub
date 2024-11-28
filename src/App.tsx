@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Project, Todo, Note, User } from './types';
-import { storage } from './utils/storage';
+import {
+  createBrowserRouter,
+  RouterProvider,
+  createRoutesFromElements,
+  Route,
+  Navigate,
+} from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { ProjectView } from './components/ProjectView';
 import { Login } from './components/Login';
@@ -8,19 +13,26 @@ import { AdminPanel } from './components/AdminPanel';
 import { ThemeToggle } from './components/ThemeToggle';
 import { UserProfile } from './components/UserProfile';
 import { Dashboard } from './components/Dashboard';
+import { StorageSetup } from './components/StorageSetup';
+import { storage } from './utils/storage';
+import { useAuth } from './hooks/useAuth';
+import { Project, Todo, Note } from './types';
 
 function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, initialized, login } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [todos, setTodos] = useState<Todo[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showDashboard, setShowDashboard] = useState(true);
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme') === 'dark';
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
+        .matches;
       return saved ?? prefersDark;
     }
     return false;
@@ -38,37 +50,29 @@ function App() {
   }, [isDark]);
 
   useEffect(() => {
-    const currentUser = storage.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-      setProjects(storage.getProjects().filter(p => 
-        p.userIds.includes(currentUser.id) || currentUser.isAdmin
-      ));
+    if (user) {
+      setProjects(
+        storage
+          .getProjects()
+          .filter((p) => p.userIds.includes(user.id) || user.isAdmin)
+      );
       setTodos(storage.getTodos());
       setNotes(storage.getNotes());
+    } else {
+      const currentUser = storage.getCurrentUser();
+      if (currentUser) {
+        setProjects(
+          storage
+            .getProjects()
+            .filter(
+              (p) => p.userIds.includes(currentUser.id) || currentUser.isAdmin
+            )
+        );
+        setTodos(storage.getTodos());
+        setNotes(storage.getNotes());
+      }
     }
-  }, []);
-
-  const handleLogin = (loggedInUser: User) => {
-    setUser(loggedInUser);
-    const userProjects = storage.getProjects().filter(p => 
-      p.userIds.includes(loggedInUser.id) || loggedInUser.isAdmin
-    );
-    setProjects(userProjects);
-    setTodos(storage.getTodos());
-    setNotes(storage.getNotes());
-  };
-
-  const handleLogout = () => {
-    storage.setCurrentUser(null);
-    setUser(null);
-    setProjects([]);
-    setTodos([]);
-    setNotes([]);
-    setSelectedProjectId(null);
-    setShowAdminPanel(false);
-    setShowDashboard(true);
-  };
+  }, [user]);
 
   const handleNewProject = () => {
     if (!user) return;
@@ -91,7 +95,7 @@ function App() {
   };
 
   const handleUpdateProject = (updatedProject: Project) => {
-    const updatedProjects = projects.map(p =>
+    const updatedProjects = projects.map((p) =>
       p.id === updatedProject.id ? updatedProject : p
     );
     setProjects(updatedProjects);
@@ -117,24 +121,6 @@ function App() {
     storage.setTodos(updatedTodos);
   };
 
-  const handleUpdateTodo = (updatedTodo: Todo) => {
-    const updatedTodos = todos.map(t =>
-      t.id === updatedTodo.id ? updatedTodo : t
-    );
-    setTodos(updatedTodos);
-    storage.setTodos(updatedTodos);
-  };
-
-  const handleToggleTodo = (todoId: string) => {
-    const updatedTodos = todos.map((todo) =>
-      todo.id === todoId
-        ? { ...todo, completed: !todo.completed, updatedAt: new Date().toISOString() }
-        : todo
-    );
-    setTodos(updatedTodos);
-    storage.setTodos(updatedTodos);
-  };
-
   const handleAddNote = (content: string) => {
     if (!selectedProjectId) return;
 
@@ -151,12 +137,14 @@ function App() {
     storage.setNotes(updatedNotes);
   };
 
-  const handleUpdateNote = (updatedNote: Note) => {
-    const updatedNotes = notes.map(n =>
-      n.id === updatedNote.id ? updatedNote : n
+  const handleToggleTodo = (todoId: string) => {
+    const updatedTodos = todos.map((todo) =>
+      todo.id === todoId
+        ? { ...todo, completed: !todo.completed, updatedAt: new Date().toISOString() }
+        : todo
     );
-    setNotes(updatedNotes);
-    storage.setNotes(updatedNotes);
+    setTodos(updatedTodos);
+    storage.setTodos(updatedTodos);
   };
 
   const handleDeleteTodo = (todoId: string) => {
@@ -171,90 +159,123 @@ function App() {
     storage.setNotes(updatedNotes);
   };
 
-  if (!user) {
-    return (
-      <div className="dark:bg-gray-900">
-        <Login onLogin={handleLogin} />
-      </div>
+  const handleUpdateTodo = (updatedTodo: Todo) => {
+    const updatedTodos = todos.map((todo) =>
+      todo.id === updatedTodo.id ? updatedTodo : todo
     );
-  }
+    setTodos(updatedTodos);
+    storage.setTodos(updatedTodos);
+  };
+
+  const handleUpdateNote = (updatedNote: Note) => {
+    const updatedNotes = notes.map((note) =>
+      note.id === updatedNote.id ? updatedNote : note
+    );
+    setNotes(updatedNotes);
+    storage.setNotes(updatedNotes);
+  };
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
-  const projectTodos = todos.filter((todo) => todo.projectId === selectedProjectId);
-  const projectNotes = notes.filter((note) => note.projectId === selectedProjectId);
 
-  return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
-      <Sidebar
-        projects={projects}
-        selectedProjectId={selectedProjectId}
-        onSelectProject={(id) => {
-          setSelectedProjectId(id);
-          setShowAdminPanel(false);
-          setShowDashboard(false);
-        }}
-        onNewProject={handleNewProject}
-        onLogout={handleLogout}
-        user={user}
-        onAdminPanel={() => {
-          setShowAdminPanel(true);
-          setSelectedProjectId(null);
-          setShowDashboard(false);
-        }}
-        onDashboard={() => {
-          setShowDashboard(true);
-          setSelectedProjectId(null);
-          setShowAdminPanel(false);
-        }}
-      />
-      <div className="flex-1 flex flex-col">
-        <div className="p-4 flex justify-between items-center bg-white dark:bg-gray-900 shadow-sm">
-          <UserProfile user={user} />
-          <ThemeToggle isDark={isDark} onToggle={() => setIsDark(!isDark)} />
-        </div>
-        <div className="flex-1">
-          {showAdminPanel ? (
-            <AdminPanel currentUser={user} />
-          ) : showDashboard ? (
-            <Dashboard
+  const routes = createRoutesFromElements(
+    <>
+      <Route path="/setup" element={<StorageSetup onComplete={login} />} />
+      <Route path="/login" element={<Login onLogin={login} />} />
+      <Route
+        path="/dashboard"
+        element={
+          <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+            <Sidebar
               projects={projects}
-              todos={todos}
+              selectedProjectId={selectedProjectId}
               onSelectProject={(id) => {
                 setSelectedProjectId(id);
+                setShowAdminPanel(false);
                 setShowDashboard(false);
               }}
+              onNewProject={handleNewProject}
+              user={user}
+              onAdminPanel={() => {
+                setShowAdminPanel(true);
+                setSelectedProjectId(null);
+                setShowDashboard(false);
+              }}
+              onDashboard={() => {
+                setShowDashboard(true);
+                setSelectedProjectId(null);
+                setShowAdminPanel(false);
+              }}
             />
-          ) : selectedProject ? (
-            <ProjectView
-              project={selectedProject}
-              todos={projectTodos}
-              notes={projectNotes}
-              onAddTodo={handleAddTodo}
-              onToggleTodo={handleToggleTodo}
-              onAddNote={handleAddNote}
-              onDeleteTodo={handleDeleteTodo}
-              onDeleteNote={handleDeleteNote}
-              onUpdateProject={handleUpdateProject}
-              onUpdateTodo={handleUpdateTodo}
-              onUpdateNote={handleUpdateNote}
-              canEdit={user.isAdmin || selectedProject.ownerId === user.id}
-            />
-          ) : (
-            <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-800">
-              <div className="text-center">
-                <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                  Welcome to ProjectHub
-                </h2>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Select a project or create a new one to get started
-                </p>
+            <div className="flex-1 flex flex-col">
+              <div className="p-4 flex justify-between items-center bg-white dark:bg-gray-900 shadow-sm">
+                {user ? (
+                  <UserProfile user={user} />
+                ) : (
+                  <div>No user information available</div>
+                )}
+                <ThemeToggle isDark={isDark} onToggle={() => setIsDark(!isDark)} />
+              </div>
+              <div className="flex-1">
+                {showAdminPanel ? (
+                  <AdminPanel currentUser={user!} />
+                ) : showDashboard ? (
+                  <Dashboard projects={projects} todos={todos} />
+                ) : selectedProject ? (
+                  <ProjectView
+                    project={selectedProject}
+                    todos={todos.filter(
+                      (todo) => todo.projectId === selectedProject.id
+                    )}
+                    notes={notes.filter(
+                      (note) => note.projectId === selectedProject.id
+                    )}
+                    onAddTodo={handleAddTodo}
+                    onAddNote={handleAddNote}
+                    onToggleTodo={handleToggleTodo}
+                    onDeleteTodo={handleDeleteTodo}
+                    onDeleteNote={handleDeleteNote}
+                    onUpdateProject={handleUpdateProject}
+                    onUpdateTodo={handleUpdateTodo}
+                    onUpdateNote={handleUpdateNote}
+                    canEdit={
+                      user?.isAdmin || selectedProject?.ownerId === user?.id
+                    }
+                  />
+                ) : (
+                  <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+                    <div className="text-center">
+                      <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                        Welcome to ProjectHub
+                      </h2>
+                      <p className="text-gray-500 dark:text-gray-400">
+                        Select a project or create a new one to get started
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          )}
-        </div>
-      </div>
-    </div>
+          </div>
+        }
+      />
+      {user?.isAdmin && <Route path="/admin" element={<AdminPanel />} />}
+      <Route
+        path="*"
+        element={
+          initialized ? (
+            <Navigate to={user ? '/dashboard' : '/login'} replace />
+          ) : (
+            <Navigate to="/setup" replace />
+          )
+        }
+      />
+    </>
   );
+
+  const router = createBrowserRouter(routes);
+
+  return <RouterProvider router={router} />;
 }
 
+// Add the default export at the end of the file
 export default App;
