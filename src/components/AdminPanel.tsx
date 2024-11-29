@@ -1,28 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Project } from '../types';
-import { auth } from '../utils/auth';
-import { storage } from '../utils/storage';
-import { Shield, Trash2, UserCog, Users, FolderKanban, Share2, Database, Folder } from 'lucide-react';
+import { Shield, Trash2, Users, FolderKanban, Share2, Folder } from 'lucide-react';
 import { ProjectSharing } from './ProjectSharing';
 import { DirectoryBrowser } from './DirectoryBrowser';
+import { API_BASE_URL } from '../config';
 
 interface AdminPanelProps {
   currentUser: User;
 }
 
 export function AdminPanel({ currentUser }: AdminPanelProps) {
-  const [users, setUsers] = useState<User[]>(storage.getUsers());
-  const [projects, setProjects] = useState<Project[]>(storage.getProjects());
+  const [users, setUsers] = useState<User[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showDirectoryBrowser, setShowDirectoryBrowser] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
+  useEffect(() => {
+    // Fetch users from backend
+    fetch(`${API_BASE_URL}/api/users`)
+      .then((res) => res.json())
+      .then((data) => setUsers(data))
+      .catch((error) => console.error('Error fetching users:', error));
+
+    // Fetch projects from backend
+    fetch(`${API_BASE_URL}/api/projects`)
+      .then((res) => res.json())
+      .then((data) => setProjects(data))
+      .catch((error) => console.error('Error fetching projects:', error));
+  }, []);
+
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const user = await auth.register(newUsername, newPassword);
+      const response = await fetch(`${API_BASE_URL}/api/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: newUsername, password: newPassword }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add user');
+      }
+
+      const user = await response.json();
       setUsers([...users, user]);
       setNewUsername('');
       setNewPassword('');
@@ -37,11 +62,25 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
       return;
     }
 
-    const updatedUsers = users.map((user) =>
-      user.id === userId ? { ...user, isAdmin: !user.isAdmin } : user
-    );
-    storage.setUsers(updatedUsers);
-    setUsers(updatedUsers);
+    const user = users.find((user) => user.id === userId);
+    if (!user) return;
+
+    const updatedUser = { ...user, isAdmin: !user.isAdmin };
+
+    fetch(`${API_BASE_URL}/api/users/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedUser),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Failed to update user admin status');
+        }
+        setUsers(users.map((u) => (u.id === userId ? updatedUser : u)));
+      })
+      .catch((error) => alert(error.message));
   };
 
   const handleDeleteUser = (userId: string) => {
@@ -51,29 +90,60 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
     }
 
     if (confirm("Are you sure you want to delete this user?")) {
-      auth.deleteUser(userId);
-      setUsers(users.filter((user) => user.id !== userId));
+      fetch(`${API_BASE_URL}/api/users/${userId}`, {
+        method: 'DELETE',
+      })
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error('Failed to delete user');
+          }
+          setUsers(users.filter((user) => user.id !== userId));
+        })
+        .catch((error) => alert(error.message));
     }
   };
 
   const handleDeleteProject = (projectId: string) => {
     if (confirm("Are you sure you want to delete this project and all its contents?")) {
-      const updatedProjects = projects.filter((p) => p.id !== projectId);
-      storage.setProjects(updatedProjects);
-      setProjects(updatedProjects);
+      fetch(`${API_BASE_URL}/api/projects/${projectId}`, {
+        method: 'DELETE',
+      })
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error('Failed to delete project');
+          }
+          setProjects(projects.filter((project) => project.id !== projectId));
+        })
+        .catch((error) => alert(error.message));
     }
   };
 
   const handleUpdateDataDirectory = (projectId: string, path: string) => {
-    const updatedProjects = projects.map((project) =>
-      project.id === projectId
-        ? { ...project, dataDirectory: path, updatedAt: new Date().toISOString() }
-        : project
-    );
-    storage.setProjects(updatedProjects);
-    setProjects(updatedProjects);
-    setShowDirectoryBrowser(false);
-    setSelectedProjectId(null);
+    const updatedProject = projects.find((project) => project.id === projectId);
+    if (!updatedProject) return;
+
+    const updatedProjectData = {
+      ...updatedProject,
+      dataDirectory: path,
+      updatedAt: new Date().toISOString(),
+    };
+
+    fetch(`${API_BASE_URL}/api/projects/${projectId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedProjectData),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Failed to update project data directory');
+        }
+        setProjects(projects.map((p) => (p.id === projectId ? updatedProjectData : p)));
+        setShowDirectoryBrowser(false);
+        setSelectedProjectId(null);
+      })
+      .catch((error) => alert(error.message));
   };
 
   return (
@@ -153,7 +223,6 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
                 </div>
               ))}
             </div>
-
           </div>
         </div>
 
@@ -166,45 +235,40 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
             </div>
           </div>
 
-          <div className="divide-y divide-gray-200 dark:divide-gray-700">
-            {projects.map((project) => (
-              <div key={project.id} className="p-6 flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">{project.name}</h3>
-                  <p className="text-sm text-gray-500">
-                    Owner: {users.find((u) => u.id === project.ownerId)?.username}
-                  </p>
-                  {project.dataDirectory && (
-                    <p className="text-sm text-gray-500">Storage: {project.dataDirectory}</p>
-                  )}
-                </div>
+<div className="divide-y divide-gray-200 dark:divide-gray-700">
+  {projects.map((project) => {
+    const owner = users.find((user) => user.id === project.ownerId);
 
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => setSelectedProject(project)}
-                    className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                  >
-                    <Share2 className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSelectedProjectId(project.id);
-                      setShowDirectoryBrowser(true);
-                    }}
-                    className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                  >
-                    <Folder className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteProject(project.id)}
-                    className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+    return (
+      <div key={project.id} className="p-6 flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">{project.name}</h3>
+          <p className="text-sm text-gray-500">
+            Owner: {owner ? owner.username : 'Unknown'}
+          </p>
+          {project.dataDirectory && (
+            <p className="text-sm text-gray-500">Storage: {project.dataDirectory}</p>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setSelectedProject(project)}
+            className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+          >
+            <Share2 className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => handleDeleteProject(project.id)}
+            className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+          >
+            <Trash2 className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    );
+  })}
+</div>
+
         </div>
       </div>
 
@@ -217,7 +281,6 @@ export function AdminPanel({ currentUser }: AdminPanelProps) {
             const updatedProjects = projects.map((p) =>
               p.id === updatedProject.id ? updatedProject : p
             );
-            storage.setProjects(updatedProjects);
             setProjects(updatedProjects);
             setSelectedProject(null);
           }}

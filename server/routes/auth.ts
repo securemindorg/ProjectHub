@@ -4,12 +4,23 @@ import { fileStorage } from '../services/storage';
 const router = Router();
 
 router.post('/register', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, dataPath } = req.body;
+
+  if (!dataPath) {
+    return res.status(400).json({ error: 'Data path is required' });
+  }
+
   try {
+    // Initialize storage before creating the user
+    await fileStorage.initialize(dataPath);
+
     const user = await fileStorage.createUser(username, password);
-    res.json(user);
+    res.status(201).json(user);
   } catch (error) {
-    res.status(400).json({ error: error instanceof Error ? error.message : 'Registration failed' });
+    console.error('Registration Error:', error);
+    res.status(400).json({
+      error: error instanceof Error ? error.message : 'Registration failed',
+    });
   }
 });
 

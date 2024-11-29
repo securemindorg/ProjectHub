@@ -1,0 +1,32 @@
+{
+  "users": [],
+  "projects": [
+    {
+      "name": "Project 1",
+      "userIds": [
+        null
+      ],
+      "id": "32db49e6-808d-4d70-aa51-abb9dac648b9",
+      "createdAt": "2024-11-28T21:56:21.997Z",
+      "updatedAt": "2024-11-28T21:56:21.997Z"
+    }
+  ],
+  "todos": [
+    {
+      "title": "test",
+      "projectId": "32db49e6-808d-4d70-aa51-abb9dac648b9",
+      "id": "81760448-d85a-4d13-87ba-902e66638f2e",
+      "createdAt": "2024-11-28T22:00:20.924Z",
+      "updatedAt": "2024-11-28T22:00:20.924Z"
+    }
+  ],
+  "notes": [
+    {
+      "content": "test",
+      "projectId": "32db49e6-808d-4d70-aa51-abb9dac648b9",
+      "id": "7393c551-afa5-421d-b790-f4cff3966e48",
+      "createdAt": "2024-11-28T22:00:24.237Z",
+      "updatedAt": "2024-11-28T22:00:24.237Z"
+    }
+  ]
+}

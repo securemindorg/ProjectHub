@@ -38,7 +38,7 @@ export const storage = {
     storage.setUsers(users);
   },
 
-    setCurrentUser: (user: User | null) => {
+  setCurrentUser: (user: User | null) => {
     if (user) {
       console.log('Setting current user:', user); // Debug log
       localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
@@ -46,13 +46,18 @@ export const storage = {
       console.log('Clearing current user'); // Debug log
       localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
     }
-    },
+  },
 
-    getCurrentUser: (): User | null => {
-      const user = JSON.parse(localStorage.getItem(STORAGE_KEYS.CURRENT_USER) || 'null');
-      console.log('Getting current user:', user); // Debug log
-      return user;
-    },
+  getCurrentUser: (): User | null => {
+    const user = JSON.parse(localStorage.getItem(STORAGE_KEYS.CURRENT_USER) || 'null');
+    console.log('Getting current user:', user); // Debug log
+    return user;
+  },
+
+  removeCurrentUser: () => {
+    console.log('Removing current user from storage'); // Debug log
+    localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+  },
 
   getProjects: (): Project[] => {
     return JSON.parse(localStorage.getItem(STORAGE_KEYS.PROJECTS) || '[]');
@@ -60,6 +65,13 @@ export const storage = {
 
   setProjects: (projects: Project[]) => {
     localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+  },
+
+  deleteProject: (projectId: string) => {
+    const projects = storage.getProjects();
+    const updatedProjects = projects.filter((project) => project.id !== projectId);
+    storage.setProjects(updatedProjects);
+    console.log('Project deleted:', projectId); // Debug log
   },
 
   getTodos: (): Todo[] => {

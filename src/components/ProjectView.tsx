@@ -180,7 +180,7 @@ export function ProjectView({
                         type="text"
                         value={todo.title}
                         onChange={(e) =>
-                          onUpdateTodo({ ...todo, title: e.target.value })
+                          onUpdateTodo({ ...todo, title: e.target.value })  // Ensure this function is available
                         }
                         className="flex-1 px-2 py-1 bg-white dark:bg-gray-700 border border-blue-500 rounded focus:outline-none dark:text-white"
                         autoFocus

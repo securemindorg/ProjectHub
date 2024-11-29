@@ -1,0 +1,33 @@
+{
+  "users": [
+    {
+      "id": "b66b9ce3-f0b8-436a-bd5b-c80ae4a6fdb3",
+      "username": "testuser",
+      "passwordHash": "9f735e0df9a1ddc702bf0a1a7b83033f9f7153a00c29de82cedadc9957289b05",
+      "isAdmin": true,
+      "createdAt": "2024-11-28T21:27:14.978Z"
+    }
+  ],
+  "projects": [
+    {
+      "name": "Test Project",
+      "ownerId": "b66b9ce3-f0b8-436a-bd5b-c80ae4a6fdb3",
+      "userIds": [
+        "b66b9ce3-f0b8-436a-bd5b-c80ae4a6fdb3"
+      ],
+      "id": "7e2a2ce4-6aae-4a2d-b640-937d89fab832",
+      "createdAt": "2024-11-28T21:38:16.180Z",
+      "updatedAt": "2024-11-28T21:38:16.181Z"
+    }
+  ],
+  "todos": [],
+  "notes": [
+    {
+      "projectId": "7e2a2ce4-6aae-4a2d-b640-937d89fab832",
+      "content": "This is a test note",
+      "id": "beb7a717-7dd9-4849-97f1-3594133d8a9a",
+      "createdAt": "2024-11-28T21:40:16.266Z",
+      "updatedAt": "2024-11-28T21:40:16.266Z"
+    }
+  ]
+}

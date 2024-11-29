@@ -1,5 +1,5 @@
 import React from 'react';
-import { FolderKanban, ListTodo, StickyNote, Plus, LogOut, UserCog, LayoutDashboard } from 'lucide-react';
+import { FolderKanban, LayoutDashboard, Plus, LogOut, UserCog } from 'lucide-react';
 import { Project, User } from '../types';
 
 interface SidebarProps {
@@ -23,10 +23,6 @@ export function Sidebar({
   onAdminPanel,
   onDashboard,
 }: SidebarProps) {
-  // Debugging logs
-  console.log("Sidebar - User Object:", user);
-  console.log("Sidebar - User Admin Status:", user?.isAdmin);
-
   if (!user) {
     return (
       <div className="flex items-center justify-center h-screen">

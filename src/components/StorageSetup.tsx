@@ -8,7 +8,7 @@ interface StorageSetupProps {
 }
 
 export const StorageSetup = ({ onComplete }: StorageSetupProps) => {
-  const { initialize, register } = useAuth(); // Updated to use register
+  const { initialize, register } = useAuth();
   const [dataPath, setDataPath] = useState('/home/project/data');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -19,28 +19,28 @@ export const StorageSetup = ({ onComplete }: StorageSetupProps) => {
     e.preventDefault();
     setError('');
 
+    // Check that all fields are filled
     if (!dataPath || !username || !password) {
       setError('All fields are required');
       return;
     }
 
     try {
-      console.log('Initializing Storage at:', dataPath);
-      console.log('Registering Admin with:', { username, password });
-
-      // Initialize the storage
+      // Initialize storage on the server side before proceeding
+      console.log('Initializing storage at:', dataPath);
       await initialize(dataPath);
 
       // Register the admin user
+      console.log('Registering admin with:', { username, password });
       const user = await register({ username, password, isAdmin: true });
-      console.log('Registered User:', user);
 
-      // Complete the setup and redirect
-      onComplete(user);
-      navigate('/login');
+      console.log('Registered user:', user);
+      onComplete(user);  // Callback after successful setup
+      navigate('/login');  // Redirect to login after setup
     } catch (err) {
-      console.error('StorageSetup Error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      // Handle errors that occur during the setup process
+      console.error('Error during storage setup:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred during setup');
     }
   };
 
@@ -50,8 +50,8 @@ export const StorageSetup = ({ onComplete }: StorageSetupProps) => {
         <h2 className="text-2xl font-bold text-center mb-8 text-gray-900 dark:text-white">
           Setup ProjectHub
         </h2>
-
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Storage path input */}
           <div>
             <label
               htmlFor="dataPath"
@@ -80,6 +80,7 @@ export const StorageSetup = ({ onComplete }: StorageSetupProps) => {
             </p>
           </div>
 
+          {/* Username input */}
           <div>
             <label
               htmlFor="username"
@@ -97,6 +98,7 @@ export const StorageSetup = ({ onComplete }: StorageSetupProps) => {
             />
           </div>
 
+          {/* Password input */}
           <div>
             <label
               htmlFor="password"
@@ -114,10 +116,12 @@ export const StorageSetup = ({ onComplete }: StorageSetupProps) => {
             />
           </div>
 
+          {/* Error message */}
           {error && (
             <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
           )}
 
+          {/* Submit button */}
           <button
             type="submit"
             className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
