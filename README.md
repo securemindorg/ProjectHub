@@ -74,9 +74,11 @@ Whether you're managing personal tasks or collaborating with a team, ProjectHub 
 
 3. Run the container:
 
-   ``` sudo docker run -d -it --rm -p 3000:3000 -p 5173:5173 --name ProjectHub projecthub-main:latest ```
+   ``` sudo docker run -d -it --rm -p 3000:3000 -p 5173:5173 --name ProjectHub -v /home/user/data:/app/data projecthub-main:latest ```
 
-4. Open the app in your browser at http://localhost:5173
+   you can set the data directory location to be whatever you want during the initial setup in the web interface
+
+5. Open the app in your browser at http://localhost:5173
    
 ---
 
