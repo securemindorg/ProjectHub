@@ -127,16 +127,6 @@ https://github.com/user-attachments/assets/06d0660c-857f-43b3-adca-df27f897c134
 
 ## Advanced Features
 
-### Storage Settings
-1. Projects can optionally have a designated storage directory for local data.
-2. To configure storage paths for a project:
-   - Navigate to the admin panel.
-   - Click the folder icon next to the desired project.
-   - Use the directory browser to select or update the directory.
-   - Save the changes to finalize the configuration.
-
-3. Storage paths allow data like notes and tasks to persist locally for each project.
-
 ### Role-Based Access
 - **Admin Users**:
   - Have full access to manage users, projects, and storage settings.
