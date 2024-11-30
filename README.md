@@ -36,6 +36,7 @@ Whether you're managing personal tasks or collaborating with a team, ProjectHub 
    ```bash
    git clone https://github.com/your-repo/projecthub.git
    cd projecthub```
+   
 2. Install dependencies:
 
 ``` npm install ```
@@ -44,11 +45,11 @@ Whether you're managing personal tasks or collaborating with a team, ProjectHub 
 
 ```npm run dev```
 
-4. Open the app in your browser at http://localhost:5173.
+4. Open the app in your browser at http://localhost:5173
 
 ## Getting Started
 
-### Initial Setup
+#### Initial Setup
 
 1. On the first launch, you'll be prompted to set up the data storage directory and register an **Admin User**.
    - Enter the desired data storage path.
@@ -58,6 +59,25 @@ Whether you're managing personal tasks or collaborating with a team, ProjectHub 
 
 3. Start managing your projects, tasks, and notes!
 
+---
+
+## Docker Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-repo/projecthub.git
+   cd projecthub```
+
+2. Build the container:
+
+   ``` sudo docker build -f Dockerfile.dev -t projecthub-main:latest . ```
+
+3. Run the container:
+
+   ``` sudo docker run -d -it --rm -p 3000:3000 -p 5173:5173 --name ProjectHub projecthub-main:latest ```
+
+4. Open the app in your browser at http://localhost:5173
+   
 ---
 
 ## Usage Guide
