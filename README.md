@@ -1,3 +1,8 @@
+
+<p align="center">
+<img src="https://github.com/user-attachments/assets/78155456-5e76-480f-ac6d-f7a88ebe533a" width=30% height=30% />
+</p>
+
 # Welcome to ProjectHub! 
 
 **ProjectHub** is a lightweight and intuitive project management app designed to help you organize your tasks, notes, and projects—all while keeping your data private and stored locally on your device.
