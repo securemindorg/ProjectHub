@@ -157,6 +157,10 @@ https://github.com/user-attachments/assets/06d0660c-857f-43b3-adca-df27f897c134
 - 🕒 Timestamps for tasks and notes
 - 📊 Dashboard improvements for sorting and filtering tasks
 
+### Known Issues
+- On first login after setup user has to refresh the page
+- Logout button in some browsers doesn't work
+
 Contributing
 We welcome contributions! Here's how you can get involved:
 
