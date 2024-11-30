@@ -162,3 +162,8 @@ We welcome contributions! Here's how you can get involved:
 ```git commit -m "Add new feature"```
 ```git push origin feature-name```
 4. Create a pull request, and we'll review your changes!
+ 
+## Disclaimer
+This application has not undergone any formal security testing and is not intended for use in production environments. It is provided as-is, without any warranties or guarantees of functionality, reliability, or security.
+
+By using this software, you acknowledge that it is still in development and accept any risks associated with its use. Contributions and feedback are welcome to improve the project.
